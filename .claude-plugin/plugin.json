@@ -1,0 +1,14 @@
+{
+  "name": "session-cost",
+  "displayName": "Session Cost Tracker",
+  "version": "0.1.0",
+  "description": "Track estimated per-session Claude Code spend and report it with /session-cost:report, with optional budget headroom from ~/.claude/budgets.json",
+  "author": {
+    "name": "Corey Ballou",
+    "url": "https://github.com/cballou"
+  },
+  "repository": "https://github.com/cballou/claude-session-cost",
+  "license": "MIT",
+  "keywords": ["cost", "spend", "budget", "tracking", "usage"],
+  "hooks": "./hooks/hooks.json"
+}
