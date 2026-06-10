@@ -104,7 +104,7 @@ def session_report(session_id, cost_dir, budgets_path=DEFAULT_BUDGETS_PATH, proj
     """Build a spend report dict for one session, or None if unreadable."""
     cost_file = os.path.join(cost_dir, f"{_COST_PREFIX}{session_id}.json")
     data = _load_json(cost_file)
-    if not data:
+    if not isinstance(data, dict) or not data:
         return None
 
     total = data.get("total_estimated_usd", 0)

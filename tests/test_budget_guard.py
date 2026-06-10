@@ -147,6 +147,26 @@ class TestTeamLimits:
         assert r.returncode == 2
         assert "alpha" in r.stderr
 
+    def test_team_soft_limit_warns(self, env):
+        env.write_budgets({"default": {"team_soft_limit_usd": 5.0}})
+        env.write_cost("sess-1", 3.0, team_name="alpha")
+        env.write_cost("sess-2", 3.0, team_name="alpha")
+        r = env.run(hook_input(), CLAUDE_TEAM_NAME="alpha")
+        assert r.returncode == 0
+        out = json.loads(r.stdout)
+        assert "alpha" in out["systemMessage"]
+        assert "$6.00" in out["systemMessage"]
+
+    def test_team_name_falls_back_to_cost_file(self, env):
+        """When CLAUDE_TEAM_NAME isn't in the env, the session's own cost
+        file team_name still drives team enforcement."""
+        env.write_budgets({"default": {"team_hard_limit_usd": 5.0}})
+        env.write_cost("sess-1", 3.0, team_name="alpha")
+        env.write_cost("sess-2", 3.0, team_name="alpha")
+        r = env.run(hook_input())  # no CLAUDE_TEAM_NAME
+        assert r.returncode == 2
+        assert "alpha" in r.stderr
+
 
 class TestFailOpen:
     def test_malformed_stdin_allows(self, env):

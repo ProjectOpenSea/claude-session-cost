@@ -65,7 +65,9 @@ def _parse_transcript_delta(path, offset, seen_ids):
             continue
         if not isinstance(entry, dict) or entry.get("type") != "assistant":
             continue
-        message = entry.get("message") or {}
+        message = entry.get("message")
+        if not isinstance(message, dict):
+            continue
         usage = message.get("usage")
         if not isinstance(usage, dict):
             continue

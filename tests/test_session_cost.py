@@ -129,6 +129,12 @@ class TestSessionReport:
         (cost_env.cost_dir / "claude-cost-bad.json").write_text("{x")
         assert self.report(cost_env, "bad") is None
 
+    def test_non_dict_cost_file_returns_none(self, cost_env):
+        (cost_env.cost_dir / "claude-cost-listy.json").write_text("[1, 2]")
+        assert self.report(cost_env, "listy") is None
+        (cost_env.cost_dir / "claude-cost-str.json").write_text('"hello"')
+        assert self.report(cost_env, "str") is None
+
     def test_malformed_budgets_still_reports(self, cost_env):
         cost_env.budgets_path.write_text("{broken")
         cost_env.write_cost("s1", 1.5)
