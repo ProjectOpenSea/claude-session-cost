@@ -5,6 +5,7 @@ Stdlib-only. Used by:
 - cost-track.py  (PostToolUse hook — accumulates per-tool-call estimates)
 - session-cost.py (the /session-cost:report command backend)
 """
+import json
 import os
 
 # --- Pricing (USD per million tokens) ---
@@ -53,6 +54,27 @@ def resolve_cost_dir():
     must agree on one location.
     """
     return os.environ.get("COST_DIR") or os.environ.get("CLAUDE_TMP_DIR") or "/tmp"
+
+
+def atomic_write_json(path, data):
+    """Atomically replace path with data as JSON, 0600. Raises OSError.
+
+    Deliberately avoids the tempfile module: this runs on the PostToolUse
+    hot path and tempfile's transitive imports add ~9ms per hook invocation.
+    O_EXCL + a pid-suffixed name gives the same single-writer safety.
+    """
+    tmp_path = f"{path}.tmp.{os.getpid()}"
+    fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    try:
+        with os.fdopen(fd, "w") as wf:
+            json.dump(data, wf)
+        os.replace(tmp_path, path)
+    except OSError:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def get_pricing(model):

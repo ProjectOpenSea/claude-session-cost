@@ -8,7 +8,7 @@
     {
       "name": "session-cost",
       "source": "./",
-      "description": "Track estimated per-session Claude Code spend and report it with /session-cost:report",
+      "description": "Track, report, and enforce per-session Claude Code spend budgets",
       "license": "MIT",
       "keywords": [
         "cost",

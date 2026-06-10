@@ -12,11 +12,10 @@ import json
 import os
 import re
 import sys
-import tempfile
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cost_tracker import estimate_tool_cost, resolve_cost_dir  # noqa: E402
+from cost_tracker import atomic_write_json, estimate_tool_cost, resolve_cost_dir  # noqa: E402
 
 # session_id is spliced into a filename — restrict to the id alphabet.
 _SESSION_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,256}")
@@ -51,17 +50,10 @@ def track(data):
     if team_name:
         totals["team_name"] = team_name
 
-    tmp_fd, tmp_path = tempfile.mkstemp(dir=cost_dir, suffix=".json")
     try:
-        os.fchmod(tmp_fd, 0o600)
-        with os.fdopen(tmp_fd, "w") as wf:
-            json.dump(totals, wf)
-        os.replace(tmp_path, cost_file)
+        atomic_write_json(cost_file, totals)
     except OSError:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+        pass
 
 
 def main():

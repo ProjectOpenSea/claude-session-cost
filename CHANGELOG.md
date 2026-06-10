@@ -6,6 +6,9 @@ Initial release.
 
 - `PostToolUse` hook accumulating estimated per-tool-call cost into
   session-scoped cost files (atomic writes, `0600`, fail-open).
+- `PreToolUse` budget gate: soft-limit warnings (deduplicated per $1) and
+  hard-limit tool-call blocking from `~/.claude/budgets.json`; zero-dollar
+  limits honored as kill switches; no-op without a budgets file; fail-open.
 - `/session-cost:report` command: current session, explicit session id,
   `--all`, `--json`.
 - Optional budget headroom from `~/.claude/budgets.json` with per-project

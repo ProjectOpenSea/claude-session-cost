@@ -1,7 +1,8 @@
 # claude-session-cost
 
-A Claude Code plugin that tracks **estimated per-session spend** and reports it
-on demand — with optional soft/hard budget headroom.
+A Claude Code plugin that tracks **estimated per-session spend**, reports it
+on demand, and (optionally) **enforces budgets** — warning at a soft limit and
+blocking tool calls at a hard limit.
 
 ```
 ## Session Spend
@@ -11,8 +12,8 @@ on demand — with optional soft/hard budget headroom.
 - **Tool calls tracked**: 63
 
 ### Budget
-- Soft limit: $25.00 (12% used)
-- Hard limit: $150.00 (2% used)
+- Soft limit: $5.00 (59% used)
+- Hard limit: $25.00 (12% used)
 ```
 
 ## Why
@@ -20,14 +21,19 @@ on demand — with optional soft/hard budget headroom.
 Claude Code's built-in `/usage` shows token usage for your account/plan, but
 there's no per-session running spend estimate you can query mid-session, and
 nothing that compares it to a budget you set. This plugin fills that gap with
-two small stdlib-only Python pieces:
+three small stdlib-only Python pieces:
 
 1. **A `PostToolUse` hook** (`scripts/cost-track.py`) that accumulates an
    estimated cost per tool call into `/tmp/claude-cost-{session_id}.json`
-   (atomic writes, `0600` permissions, fail-open — it can never block your
-   session).
-2. **A `/session-cost:report` command** that reads those files and renders the
-   summary above.
+   (atomic writes, `0600` permissions, fail-open — its own errors can never
+   block your session).
+2. **A `PreToolUse` budget gate** (`scripts/budget-guard.py`) that compares
+   the running total against `~/.claude/budgets.json`: warns Claude via a
+   system message at the soft limit (deduplicated per $1), and **blocks tool
+   calls** at the hard limit. Without a `budgets.json` it is a no-op, so
+   installing the plugin never blocks anyone by surprise.
+3. **A `/session-cost:report` command** that reads the cost files and renders
+   the summary above.
 
 ## Install
 
@@ -64,9 +70,14 @@ Create `~/.claude/budgets.json` to get headroom reporting:
 ```
 
 Project overrides match the directory name under `~/code/<project>` or
-`~/Code/<project>`. A limit of `0` is valid and renders as a hard stop. This
-plugin **reports** against budgets; it does not block tool calls when you
-exceed them (enforcement is a deliberate non-goal — see Caveats).
+`~/Code/<project>`. A limit of `0` is valid — a zero hard limit blocks every
+tool call (useful as a kill switch). `team_soft_limit_usd` /
+`team_hard_limit_usd` aggregate across sessions sharing a `CLAUDE_TEAM_NAME`.
+
+When you hit a hard limit, the gate denies tool calls with the reason on
+stderr; raise the limit in `budgets.json` or start a new session. The gate is
+fail-open: any error in the gate itself (corrupt config, unreadable cost
+file) allows the tool call rather than wedging your session.
 
 ## How estimates work — read this
 
@@ -93,9 +104,9 @@ file and the report shows a team-wide total across sessions sharing it.
 
 ## Caveats / non-goals
 
-- **No enforcement.** This plugin never blocks a tool call. If you want a
-  PreToolUse budget gate (warn at soft limit, deny at hard limit), that's a
-  natural extension — PRs welcome.
+- **Enforcement is only as good as the estimates.** The hard-limit gate
+  blocks on *estimated* spend (see above) — treat limits as guardrails with
+  margin, not precise meters.
 - **Not a billing source of truth.** Use the Anthropic Console for real spend.
 
 ## Development
