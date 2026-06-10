@@ -18,10 +18,21 @@ class TestPluginJson:
         assert manifest["version"]
         assert manifest["license"] == "MIT"
 
-    def test_hooks_path_exists(self):
+    def test_default_hooks_file_exists(self):
+        assert (ROOT / "hooks" / "hooks.json").exists()
+
+    def test_manifest_does_not_redeclare_default_hooks(self):
+        """hooks/hooks.json is auto-loaded by convention; declaring it again
+        in plugin.json makes Claude Code load it twice and fail at install
+        ('Duplicate hooks file detected'). manifest.hooks is only for
+        ADDITIONAL hook files."""
         manifest = load(".claude-plugin/plugin.json")
-        hooks_rel = manifest.get("hooks", "./hooks/hooks.json")
-        assert (ROOT / hooks_rel).exists()
+        hooks = manifest.get("hooks")
+        if hooks is not None:
+            paths = [hooks] if isinstance(hooks, str) else hooks
+            assert all(
+                p.lstrip("./") != "hooks/hooks.json" for p in paths if isinstance(p, str)
+            )
 
 
 class TestHooksJson:

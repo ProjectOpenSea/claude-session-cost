@@ -104,6 +104,25 @@ class TestActuals:
         run_hook(tmp_path, transcript)  # no transcript growth
         assert read_cost(tmp_path)["total_estimated_usd"] == total
 
+    def test_non_dict_message_line_skipped_not_fatal(self, tmp_path):
+        """A truthy non-dict message must skip the line, not abort the whole
+        delta (an AttributeError would silently lose the good lines too)."""
+        transcript = tmp_path / "t.jsonl"
+        transcript.write_text(
+            json.dumps({"type": "assistant", "requestId": "bad", "message": "oops"})
+            + "\n"
+            + assistant_line("req-1", input_tokens=1000, output_tokens=100)
+            + "\n"
+        )
+        result = run_hook(tmp_path, transcript)
+        assert result.returncode == 0
+        data = read_cost(tmp_path)
+        assert data["basis"] == "transcript"
+        expected = compute_cost(
+            {"input_tokens": 1000, "output_tokens": 100}, "claude-sonnet-4-6"
+        )
+        assert abs(data["total_estimated_usd"] - expected) < 1e-9
+
     def test_malformed_and_non_assistant_lines_skipped(self, tmp_path):
         transcript = tmp_path / "t.jsonl"
         transcript.write_text(

@@ -19,3 +19,9 @@ Initial release.
 - Team totals via `CLAUDE_TEAM_NAME`.
 - Pricing table: Fable 5, Opus 4.5–4.8, Sonnet 4.5/4.6, Haiku 4.5
   (Anthropic published rates, 2026).
+
+## 0.1.1 — 2026-06-10
+
+- Fix: remove duplicate `hooks` declaration from plugin.json — `hooks/hooks.json`
+  is auto-loaded by convention and redeclaring it fails plugin load with
+  "Duplicate hooks file detected". Caught by live install verification.
