@@ -25,3 +25,10 @@ Initial release.
 - Fix: remove duplicate `hooks` declaration from plugin.json — `hooks/hooks.json`
   is auto-loaded by convention and redeclaring it fails plugin load with
   "Duplicate hooks file detected". Caught by live install verification.
+
+## 0.1.2 — 2026-06-10
+
+- Fix: price 1-hour-TTL cache writes at 2x base input (5-minute at 1.25x)
+  using the per-TTL `cache_creation` breakdown in transcript usage blocks.
+  Claude Code uses 1h cache exclusively, so flat 1.25x underpriced cache
+  writes by 1.6x. Verified against live pricing docs and a real transcript.

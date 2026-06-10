@@ -24,9 +24,10 @@ PRICING = {
     "default":           {"input":  5.00, "output": 25.00},
 }
 
-# Cache multipliers (5-minute TTL writes)
-CACHE_READ_DISCOUNT = 0.10     # cache reads cost ~10% of input price
-CACHE_CREATION_PREMIUM = 1.25  # cache writes cost ~125% of input price
+# Cache multipliers (relative to base input price)
+CACHE_READ_DISCOUNT = 0.10        # cache reads cost 10% of input price
+CACHE_CREATION_PREMIUM = 1.25     # 5-minute-TTL cache writes
+CACHE_CREATION_PREMIUM_1H = 2.0   # 1-hour-TTL cache writes (what Claude Code uses)
 
 # Average token estimates per tool type (input_tokens, output_tokens).
 # Rough averages — the value is in aggregation, not per-call precision.
@@ -90,13 +91,29 @@ def get_pricing(model):
 
 
 def compute_cost(usage, model):
-    """Estimated USD cost from a Messages API usage dict."""
+    """Estimated USD cost from a Messages API usage dict.
+
+    When the usage carries a per-TTL `cache_creation` breakdown (real Claude
+    Code transcripts do, and use 1-hour cache exclusively), price 5m writes
+    at 1.25x and 1h writes at 2x base input. Otherwise fall back to 1.25x on
+    the `cache_creation_input_tokens` total.
+    """
     pricing = get_pricing(model)
+    breakdown = usage.get("cache_creation")
+    if isinstance(breakdown, dict):
+        cache_write_cost = pricing["input"] * (
+            breakdown.get("ephemeral_5m_input_tokens", 0) * CACHE_CREATION_PREMIUM
+            + breakdown.get("ephemeral_1h_input_tokens", 0) * CACHE_CREATION_PREMIUM_1H
+        )
+    else:
+        cache_write_cost = (
+            usage.get("cache_creation_input_tokens", 0)
+            * pricing["input"] * CACHE_CREATION_PREMIUM
+        )
     return (
         usage.get("input_tokens", 0) * pricing["input"]
         + usage.get("output_tokens", 0) * pricing["output"]
-        + usage.get("cache_creation_input_tokens", 0)
-        * pricing["input"] * CACHE_CREATION_PREMIUM
+        + cache_write_cost
         + usage.get("cache_read_input_tokens", 0)
         * pricing["input"] * CACHE_READ_DISCOUNT
     ) / 1_000_000
