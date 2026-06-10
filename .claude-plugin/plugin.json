@@ -1,0 +1,20 @@
+{
+  "name": "session-cost",
+  "displayName": "Session Cost Tracker",
+  "version": "0.1.0",
+  "description": "Track estimated per-session Claude Code spend, report it with /session-cost:report, and optionally enforce soft/hard budget limits from ~/.claude/budgets.json",
+  "author": {
+    "name": "OpenSea",
+    "url": "https://github.com/ProjectOpenSea"
+  },
+  "repository": "https://github.com/ProjectOpenSea/claude-session-cost",
+  "license": "MIT",
+  "keywords": [
+    "cost",
+    "spend",
+    "budget",
+    "tracking",
+    "usage"
+  ],
+  "hooks": "./hooks/hooks.json"
+}
