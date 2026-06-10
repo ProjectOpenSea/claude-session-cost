@@ -43,7 +43,7 @@ class TestComputeCost:
         cost = cost_tracker.compute_cost(usage, "claude-opus-4-8")
         assert cost == 5.00 + 25.00
 
-    def test_cache_multipliers(self):
+    def test_cache_multipliers_without_ttl_breakdown(self):
         usage = {
             "input_tokens": 0,
             "output_tokens": 0,
@@ -52,6 +52,43 @@ class TestComputeCost:
         }
         cost = cost_tracker.compute_cost(usage, "claude-opus-4-8")
         assert cost == 5.00 * 1.25 + 5.00 * 0.10
+
+    def test_cache_ttl_breakdown_prices_1h_writes_at_2x(self):
+        """Real Claude Code transcripts carry a cache_creation breakdown and
+        use 1-hour cache exclusively — 1h writes cost 2x base, not 1.25x."""
+        usage = {
+            "cache_creation_input_tokens": 1_500_000,
+            "cache_creation": {
+                "ephemeral_5m_input_tokens": 500_000,
+                "ephemeral_1h_input_tokens": 1_000_000,
+            },
+        }
+        cost = cost_tracker.compute_cost(usage, "claude-opus-4-8")
+        # breakdown replaces the flat 1.25x on the total — no double count
+        assert cost == 0.5 * 5.00 * 1.25 + 1.0 * 5.00 * 2.0
+
+    def test_cache_ttl_breakdown_real_session_shape(self):
+        """The exact shape observed in a live CC transcript: all 1h, 5m zero."""
+        usage = {
+            "input_tokens": 18,
+            "output_tokens": 160,
+            "cache_read_input_tokens": 31_312,
+            "cache_creation_input_tokens": 31_463,
+            "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 31_463,
+            },
+        }
+        cost = cost_tracker.compute_cost(usage, "claude-haiku-4-5")
+        expected = (
+            18 * 1.00 + 160 * 5.00 + 31_312 * 1.00 * 0.10 + 31_463 * 1.00 * 2.0
+        ) / 1e6
+        assert abs(cost - expected) < 1e-12
+
+    def test_cache_breakdown_non_dict_falls_back_to_flat(self):
+        usage = {"cache_creation_input_tokens": 1_000_000, "cache_creation": "junk"}
+        cost = cost_tracker.compute_cost(usage, "claude-opus-4-8")
+        assert cost == 5.00 * 1.25
 
     def test_empty_usage_is_zero(self):
         assert cost_tracker.compute_cost({}, "claude-opus-4-8") == 0.0
