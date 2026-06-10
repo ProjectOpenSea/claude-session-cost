@@ -79,14 +79,22 @@ stderr; raise the limit in `budgets.json` or start a new session. The gate is
 fail-open: any error in the gate itself (corrupt config, unreadable cost
 file) allows the tool call rather than wedging your session.
 
-## How estimates work — read this
+## How costs are computed — read this
 
-- Costs are **estimates from per-tool token averages** (e.g. an `Edit` ≈ 2000
-  input + 500 output tokens), not actual API usage. `PostToolUse` hooks don't
-  receive token counts or the model name, so the value is in trend and order
-  of magnitude, not cents-accuracy.
-- Without a model name, pricing defaults to **Opus-tier** ($5/$25 per MTok).
-  Sonnet/Haiku sessions will be overestimated.
+- **Primary path: transcript actuals.** On every tool call the hook reads the
+  *new tail* of the session transcript (`transcript_path` from hook stdin) and
+  prices the ground-truth `usage` blocks from assistant entries — real
+  input/output tokens, **cache reads at ~0.1× and cache writes at ~1.25×**
+  (cache reads dominate input tokens in agentic sessions, so ignoring them
+  makes estimates wildly wrong), at the **actual model's** published rates.
+  Entries are deduplicated by `requestId` and the file is read incrementally
+  via a stored byte offset, so the per-call overhead stays tiny.
+- **Fallback: per-tool averages.** If no transcript is readable, the hook
+  falls back to static per-tool token estimates priced at Opus-tier rates.
+  The report labels which basis produced the number.
+- **Known gap:** the transcript records usage as Claude Code writes it; the
+  final API call of a turn may not be priced until the next tool call lands.
+  Numbers are near-real-time, not to-the-cent live.
 - "Current session" is the **newest cost file**. If multiple sessions run
   concurrently, the newest file can briefly belong to a sibling session — the
   report prints the file's mtime so you can tell.

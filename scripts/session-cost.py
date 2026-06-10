@@ -115,6 +115,7 @@ def session_report(session_id, cost_dir, budgets_path=DEFAULT_BUDGETS_PATH, proj
         "total_usd": total,
         "tool_calls": data.get("tool_calls"),
         "model": data.get("model"),
+        "basis": data.get("basis"),
         "last_updated": data.get("last_updated"),
         "limits": limits,
     }
@@ -186,7 +187,13 @@ def render_markdown(report):
         lines.append(f"**Team `{team['name']}` total**: ${team['total_usd']:.2f}")
 
     lines.append("")
-    lines.append("_Estimates from per-tool token averages, not actual API usage._")
+    if report.get("basis") == "transcript":
+        lines.append(
+            "_Priced from the session transcript's actual API usage "
+            "(input/output/cache tokens at per-model rates)._"
+        )
+    else:
+        lines.append("_Estimates from per-tool token averages, not actual API usage._")
     return "\n".join(lines)
 
 

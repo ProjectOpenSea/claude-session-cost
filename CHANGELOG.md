@@ -4,8 +4,11 @@
 
 Initial release.
 
-- `PostToolUse` hook accumulating estimated per-tool-call cost into
-  session-scoped cost files (atomic writes, `0600`, fail-open).
+- `PostToolUse` hook pricing **actual API usage from the session transcript**
+  (input/output/cache tokens at per-model rates, requestId-deduplicated,
+  incremental byte-offset reads), falling back to per-tool token estimates
+  when no transcript is readable. Session-scoped cost files with atomic
+  writes, `0600`, fail-open.
 - `PreToolUse` budget gate: soft-limit warnings (deduplicated per $1) and
   hard-limit tool-call blocking from `~/.claude/budgets.json`; zero-dollar
   limits honored as kill switches; no-op without a budgets file; fail-open.

@@ -76,6 +76,18 @@ class TestSessionReport:
         assert r["tool_calls"] == 10
         assert "file_mtime" in r
 
+    def test_transcript_basis_rendered(self, cost_env):
+        cost_env.write_cost("s1", 3.21, basis="transcript")
+        r = self.report(cost_env, "s1")
+        assert r["basis"] == "transcript"
+        out = session_cost.render_markdown(r)
+        assert "actual API usage" in out
+
+    def test_estimate_basis_rendered(self, cost_env):
+        cost_env.write_cost("s1", 3.21, basis="per-tool-estimate")
+        out = session_cost.render_markdown(self.report(cost_env, "s1"))
+        assert "per-tool token averages" in out
+
     def test_limits_and_percentages(self, cost_env):
         cost_env.write_budgets(
             {"default": {"session_soft_limit_usd": 5.0, "session_hard_limit_usd": 10.0}}
