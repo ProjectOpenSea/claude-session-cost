@@ -32,3 +32,8 @@ Initial release.
   using the per-TTL `cache_creation` breakdown in transcript usage blocks.
   Claude Code uses 1h cache exclusively, so flat 1.25x underpriced cache
   writes by 1.6x. Verified against live pricing docs and a real transcript.
+
+## 0.1.3 — 2026-06-10
+
+- Add claude-mythos-5 pricing row (\$10/\$50, Fable tier) — previously fell
+  to the \$5/\$25 default, a 2x underprice.

@@ -1,7 +1,7 @@
 {
   "name": "session-cost",
   "displayName": "Session Cost Tracker",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Track estimated per-session Claude Code spend, report it with /session-cost:report, and optionally enforce soft/hard budget limits from ~/.claude/budgets.json",
   "author": {
     "name": "OpenSea",

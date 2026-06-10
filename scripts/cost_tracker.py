@@ -12,6 +12,7 @@ import os
 # Source: Anthropic published pricing, 2026. Update when new models ship.
 PRICING = {
     "claude-fable-5":    {"input": 10.00, "output": 50.00},
+    "claude-mythos-5":   {"input": 10.00, "output": 50.00},
     "claude-opus-4-8":   {"input":  5.00, "output": 25.00},
     "claude-opus-4-7":   {"input":  5.00, "output": 25.00},
     "claude-opus-4-6":   {"input":  5.00, "output": 25.00},

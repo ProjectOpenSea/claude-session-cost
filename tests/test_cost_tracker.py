@@ -16,11 +16,17 @@ class TestPricing:
     def test_known_models_present(self):
         for model in (
             "claude-fable-5",
+            "claude-mythos-5",
             "claude-opus-4-8",
             "claude-sonnet-4-6",
             "claude-haiku-4-5",
         ):
             assert model in cost_tracker.PRICING
+
+    def test_mythos_priced_at_fable_tier(self):
+        p = cost_tracker.get_pricing("claude-mythos-5")
+        assert p["input"] == 10.00
+        assert p["output"] == 50.00
 
     def test_get_pricing_exact_match(self):
         p = cost_tracker.get_pricing("claude-opus-4-8")
