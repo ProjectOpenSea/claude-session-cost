@@ -98,6 +98,17 @@ class TestSoftLimit:
         assert "systemMessage" in json.loads(env.run(hook_input()).stdout)
 
 
+class TestZeroSoftLimit:
+    def test_zero_soft_limit_warns_once_at_zero_spend(self, env):
+        """soft limit 0 + $0.00 spend must warn on the first call only,
+        not re-fire on every call (dedup sentinel must distinguish
+        'never warned' from 'warned at $0')."""
+        env.write_budgets({"default": {"session_soft_limit_usd": 0}})
+        env.write_cost("sess-1", 0.0)
+        assert "systemMessage" in json.loads(env.run(hook_input()).stdout)
+        assert json.loads(env.run(hook_input()).stdout or "{}") == {}
+
+
 class TestHardLimit:
     def test_blocks_at_hard_limit_exit_2(self, env):
         env.write_budgets({"default": {"session_hard_limit_usd": 5.0}})

@@ -109,8 +109,10 @@ def check_budget(session_id, cost_dir, budgets_path, project=None, team_name=Non
 
     soft = limits.get("session_soft_limit_usd")
     if soft is not None and current >= soft:
-        last_warn = cost_data.get("last_budget_warn_usd", 0)
-        if current - last_warn >= 1.0 or last_warn == 0:
+        # None = never warned (first warn fires even at $0.00 spend);
+        # afterwards re-warn only per $1 increment.
+        last_warn = cost_data.get("last_budget_warn_usd")
+        if last_warn is None or current - last_warn >= 1.0:
             cost_data["last_budget_warn_usd"] = current
             if not os.path.islink(cost_file):
                 try:
