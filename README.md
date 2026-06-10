@@ -112,6 +112,11 @@ file and the report shows a team-wide total across sessions sharing it.
 
 ## Caveats / non-goals
 
+- **One writer per cost file.** If another tool on your machine also writes
+  `claude-cost-{session_id}.json` (e.g. a custom harness with its own
+  PostToolUse cost hook), totals will mix and inflate. Disable the other
+  writer or point this plugin elsewhere via `COST_DIR`.
+
 - **Enforcement is only as good as the estimates.** The hard-limit gate
   blocks on *estimated* spend (see above) — treat limits as guardrails with
   margin, not precise meters.
