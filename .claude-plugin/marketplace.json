@@ -1,7 +1,7 @@
 {
   "name": "claude-session-cost",
   "owner": {
-    "name": "Corey Ballou"
+    "name": "OpenSea"
   },
   "description": "Session cost tracking plugin for Claude Code",
   "plugins": [
@@ -10,7 +10,12 @@
       "source": "./",
       "description": "Track estimated per-session Claude Code spend and report it with /session-cost:report",
       "license": "MIT",
-      "keywords": ["cost", "spend", "budget", "tracking"],
+      "keywords": [
+        "cost",
+        "spend",
+        "budget",
+        "tracking"
+      ],
       "category": "monitoring"
     }
   ]

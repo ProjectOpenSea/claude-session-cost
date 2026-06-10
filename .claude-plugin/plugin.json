@@ -4,11 +4,17 @@
   "version": "0.1.0",
   "description": "Track estimated per-session Claude Code spend and report it with /session-cost:report, with optional budget headroom from ~/.claude/budgets.json",
   "author": {
-    "name": "Corey Ballou",
-    "url": "https://github.com/cballou"
+    "name": "OpenSea",
+    "url": "https://github.com/ProjectOpenSea"
   },
-  "repository": "https://github.com/cballou/claude-session-cost",
+  "repository": "https://github.com/ProjectOpenSea/claude-session-cost",
   "license": "MIT",
-  "keywords": ["cost", "spend", "budget", "tracking", "usage"],
+  "keywords": [
+    "cost",
+    "spend",
+    "budget",
+    "tracking",
+    "usage"
+  ],
   "hooks": "./hooks/hooks.json"
 }

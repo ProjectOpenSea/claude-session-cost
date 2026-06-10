@@ -32,7 +32,7 @@ two small stdlib-only Python pieces:
 ## Install
 
 ```
-/plugin marketplace add cballou/claude-session-cost
+/plugin marketplace add ProjectOpenSea/claude-session-cost
 /plugin install session-cost@claude-session-cost
 ```
 
